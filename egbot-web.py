@@ -9,7 +9,7 @@ app = Flask(__name__)
 bootstrap = Bootstrap(app)
 app.config['SECRET_KEY'] = 'dasfstring'
 
-# meaningless comment
+
 @app.route('/', methods=['GET', 'POST'])
 def egbot():
     bfx = BitfinexREST()
@@ -26,11 +26,14 @@ def egbot():
         egbot_result = [list(x.values()) for x in bfx_result]
         for x in egbot_result:
             x[2] = datetime.utcfromtimestamp(float(x[2]))
-        # summary = bfx.get_summary(egbot_result)
+        summary = bfx.get_summary(egbot_result)
+        summary_header = summary.keys()
+        summary = list(summary.values())
     return render_template('base.html',
                            form=form,
                            the_egbot_header=egbot_header,
                            the_egbot_result=egbot_result,
+                           the_summary_header=summary_header,
                            the_summary=summary)
 
 

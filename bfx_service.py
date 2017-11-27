@@ -10,6 +10,7 @@ import hmac
 import base64
 from datetime import datetime, timedelta
 import pytz
+import math
 
 # Import Homebrew
 from bitex.api.REST.api import APIClient
@@ -60,17 +61,20 @@ class BitfinexREST(APIClient):
         pass
 
     @staticmethod
-    def get_summary():
-        result = [['1649.1', '0.1', '1511514702.0', 'Buy', 'USD', '-0.32982', 99144887, 5430517432],
-                  ['1623.2', '0.1', '1511514331.0', 'Sell', 'USD', '-0.32464', 99139252, 5430391958]]
+    def get_summary(result):
         buy_list = []
         sell_list = []
         for x in result:
-            if x[3] is 'Buy':
+            print(x[3])
+            if x[3] == 'Buy':
                 buy_list.append(float(x[0]) * float(x[1]) * -1)
             else:
                 sell_list.append(float(x[0]) * float(x[1]))
+        print(buy_list)
+        print(sell_list)
         fee_total = sum([float(x[5]) for x in result])
         profit = sum(sell_list) + sum(buy_list) + fee_total
         roi = profit / (float(result[0][0]) * float(result[0][1]))
-        return roi
+        roi = str(round(roi, 4) * 100) + '%'
+        profit = '$' + str(round(profit, 2))
+        return {'profit': profit, 'fee total': fee_total, 'ROI': roi}
