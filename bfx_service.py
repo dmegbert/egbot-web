@@ -49,7 +49,7 @@ class BitfinexREST(APIClient):
         return url, {'headers': headers}
 
     def get_past_trades(self, crypto, start, end):
-        q = {'symbol': crypto, 'timestamp': str(start), 'until': str(end)}
+        q = {'symbol': crypto, 'timestamp': str(start), 'until': str(end), 'reverse': 0}
         return self.query('POST', 'mytrades', authenticate=True, params=q).json()
 
     @staticmethod
@@ -57,24 +57,30 @@ class BitfinexREST(APIClient):
         datetime_utc = datetime.combine(date_to_convert, time_to_convert) - timedelta(hours=5)
         return datetime.timestamp(datetime_utc)
 
-    def check_open_position(self, crypto):
-        pass
-
     @staticmethod
-    def get_summary(result):
+    def get_summary(result, active_position, crypto):
         buy_list = []
         sell_list = []
+        asterisk = ''
         for x in result:
-            print(x[3])
             if x[3] == 'Buy':
                 buy_list.append(float(x[0]) * float(x[1]) * -1)
             else:
                 sell_list.append(float(x[0]) * float(x[1]))
-        print(buy_list)
-        print(sell_list)
         fee_total = sum([float(x[5]) for x in result])
         profit = sum(sell_list) + sum(buy_list) + fee_total
+        for x in active_position:
+            if x.get('symbol') == crypto:
+                profit = profit + float(x['amount']) * float(x['base'])
+                asterisk = '*'
         roi = profit / (float(result[0][0]) * float(result[0][1]))
         roi = str(round(roi, 4) * 100) + '%'
-        profit = '$' + str(round(profit, 2))
+        profit = asterisk + ' $' + str(round(profit, 2))
         return {'profit': profit, 'fee total': fee_total, 'ROI': roi}
+
+    def get_active_positions(self):
+        return self.query('POST', 'positions', authenticate=True).json()
+
+    def get_ticker(self, crypto):
+        endpoint = 'pubticker/' + crypto
+        return self.query('GET', endpoint=endpoint, authenticate=False).json()
