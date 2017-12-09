@@ -9,8 +9,6 @@ import hashlib
 import hmac
 import base64
 from datetime import datetime, timedelta
-import pytz
-import math
 
 # Import Homebrew
 from bitex.api.REST.api import APIClient
@@ -63,12 +61,12 @@ class BitfinexREST(APIClient):
         sell_list = []
         asterisk = ''
         for x in result:
-            if x[3] == 'Buy':
+            if x[3] == 'buy':
                 buy_list.append(float(x[0]) * float(x[1]) * -1)
             else:
                 sell_list.append(float(x[0]) * float(x[1]))
-        fee_total = sum([float(x[5]) for x in result])
-        profit = sum(sell_list) + sum(buy_list) + fee_total
+        fee_total = sum([float(x[0]) * 0.002 for x in result])
+        profit = sum(sell_list) + sum(buy_list) - fee_total
         for x in active_position:
             if x.get('symbol') == crypto:
                 profit = profit + float(x['amount']) * float(x['base'])
@@ -78,8 +76,15 @@ class BitfinexREST(APIClient):
         profit = asterisk + ' $' + str(round(profit, 2))
         return {'profit': profit, 'fee total': fee_total, 'ROI': roi}
 
-    def get_active_positions(self):
-        return self.query('POST', 'positions', authenticate=True).json()
+    def get_active_positions(self, crypto_pair=None):
+        all_active_positions = self.query('POST', 'positions', authenticate=True).json()
+        active_positions = []
+        if crypto_pair and active_positions:
+            for position in all_active_positions:
+                if position['symbol'] == crypto_pair:
+                    active_positions.append(position)
+            return active_positions
+        return all_active_positions
 
     def get_ticker(self, crypto):
         endpoint = 'pubticker/' + crypto

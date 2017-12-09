@@ -3,7 +3,7 @@ from flask_bootstrap import Bootstrap
 from search_form import SearchForm
 from bfx_service import BitfinexREST
 from datetime import datetime
-from operator import itemgetter
+from egbot_dao import EgbotDAO
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -15,6 +15,7 @@ def egbot():
     bfx = BitfinexREST()
     bfx.load_key('.key/read-key')
     form = SearchForm()
+    # TODO add form functionality to select crypto and dynamically update list
     egbot_result = None
     egbot_header = None
     summary = None
@@ -23,23 +24,37 @@ def egbot():
     position_header = None
     ticker = None
     ticker_header = None
+    symbol = None
+    dao = EgbotDAO()
+    trials_dict = dao.get_all_trials_by_crypto()
+    trials_list = []
+    for k, v in trials_dict.items():
+        for trial in v:
+            str_trial = str(trial)
+            str_trial = k + ': ' + str_trial
+            trials_list.append((str_trial, str_trial))
+    form.trial.choices = trials_list
     if form.validate_on_submit():
-        start_timestamp = BitfinexREST.convert_timestamp(form.data['start_date'], form.data['start_time'])
-        end_timestamp = BitfinexREST.convert_timestamp(form.data['end_date'], form.data['end_time'])
-        bfx_result = bfx.get_past_trades(form.data['crypto_pair'], start_timestamp, end_timestamp)
-        egbot_header = bfx_result[0].keys()
-        egbot_result = [list(x.values()) for x in bfx_result]
+        crypto = form.data['trial'][0:6]
+        trial_string = form.data['trial'][8:]
+        trial_datetime = datetime.strptime(trial_string, '%Y-%m-%d %H:%M:%S.%f')
+        orders = dao.get_order_data_for_trial(crypto, trial_datetime)
+        egbot_header = orders[0].keys()
+        egbot_result = [list(x.values()) for x in orders]
         for x in egbot_result:
             x[2] = datetime.utcfromtimestamp(float(x[2]))
-        active_positions = bfx.get_active_positions()
-        summary = bfx.get_summary(egbot_result, active_positions, form.data['crypto_pair'])
+        active_positions = bfx.get_active_positions(crypto)
+        summary = bfx.get_summary(egbot_result, active_positions, crypto)
         summary_header = summary.keys()
         summary = list(summary.values())
-        position_header = active_positions[0].keys()
-        position = [list(x.values()) for x in active_positions]
-        tick = bfx.get_ticker(form.data['crypto_pair'])
+        if active_positions:
+            position_header = active_positions[0].keys()
+            position = [list(x.values()) for x in active_positions]
+        tick = bfx.get_ticker(crypto)
         ticker = list(tick.values())
         ticker_header = list(tick.keys())
+        symbol = crypto.upper()
+        symbol = symbol[0:3]
     return render_template('base.html',
                            form=form,
                            the_egbot_header=egbot_header,
@@ -49,8 +64,9 @@ def egbot():
                            the_position_header=position_header,
                            the_position=position,
                            the_ticker=ticker,
-                           the_ticker_header=ticker_header)
+                           the_ticker_header=ticker_header,
+                           the_ticker_symbol=symbol)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

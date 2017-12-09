@@ -1,12 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms_components import DateField, TimeField
+from wtforms import SubmitField, SelectField
 
 
 class SearchForm(FlaskForm):
-    crypto_pair = StringField('Crypto pair, ex: bchusd')
-    start_date = DateField('Start Date')
-    start_time = TimeField('Start Time')
-    end_date = DateField('End Date')
-    end_time = TimeField('End Time')
+    trial = SelectField('Trial', coerce=str)
     submit = SubmitField('Submit')

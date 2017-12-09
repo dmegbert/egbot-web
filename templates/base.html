@@ -92,21 +92,24 @@
 {% block content %}
     <div class='container'>
         <div class='row'>
-            <div class='col-md-2'>
-                {{ wtf.quick_form(form) }}
-            </div>
-            <div class='col-md-10'>
+            <div class='col-md-12'>
+                <div class="row">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        {{ wtf.quick_form(form) }}
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
+                {% if the_ticker_header %}
                 <div class='row'>
-                <h2>Ticker</h2>
+                <h2>{{ the_ticker_symbol }} Ticker</h2>
                     <table class="table table-striped table-bordered table-responsive">
                         <thead>
-                        {% if the_ticker_header %}
                             <tr>
                                 {% for tick_head in the_ticker_header %}
                                 <th>{{ tick_head }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endif %}
                         </thead>
                         <tbody>
                         {% if the_ticker %}
@@ -119,17 +122,17 @@
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
+                {% if the_position_header %}
                 <div class='row'>
                 <h2>Active Positions</h2>
                     <table class="table table-striped table-bordered table-responsive">
                         <thead>
-                        {% if the_position_header %}
                             <tr>
                                 {% for position_head in the_position_header %}
                                 <th>{{ position_head }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endif %}
                         </thead>
                         <tbody>
                         {% if the_position %}
@@ -144,17 +147,17 @@
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
+                {% if the_summary_header %}
                 <div class='row'>
                 <h2>Summary</h2>
                     <table class="table table-striped table-bordered table-responsive">
                         <thead>
-                        {% if the_summary_header %}
                             <tr>
                                 {% for sum_head in the_summary_header %}
                                 <th>{{ sum_head }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endif %}
                         </thead>
                         <tbody>
                         {% if the_summary %}
@@ -167,17 +170,17 @@
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
+                {% if the_egbot_header %}
                 <div class='row'>
-                <h2>Trade History</h2>
+                <h2>Order History</h2>
                     <table id="example" class="table table-striped table-bordered table-responsive">
                         <thead>
-                        {% if the_egbot_header %}
                             <tr>
                                 {% for header in the_egbot_header %}
                                     <th>{{ header }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endif %}
                         </thead>
                         <tbody>
                         {% if the_egbot_result %}
@@ -192,6 +195,7 @@
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
