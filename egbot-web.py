@@ -18,13 +18,15 @@ def egbot():
     # TODO add form functionality to select crypto and dynamically update list
     egbot_result = None
     egbot_header = None
-    summary = None
+    active_summary = None
     summary_header = None
     position = None
     position_header = None
     ticker = None
     ticker_header = None
     symbol = None
+    inactive_summary = None
+    inactive_summary_header = None
     dao = EgbotDAO()
     trials_dict = dao.get_all_trials_by_crypto()
     trials_list = []
@@ -44,9 +46,11 @@ def egbot():
         for x in egbot_result:
             x[2] = datetime.utcfromtimestamp(float(x[2]))
         active_positions = bfx.get_active_positions(crypto)
-        summary = bfx.get_summary(egbot_result, active_positions, crypto)
-        summary_header = summary.keys()
-        summary = list(summary.values())
+        active_summary, inactive_summary = bfx.get_summary(egbot_result, active_positions, crypto)
+        summary_header = active_summary.keys()
+        active_summary = list(active_summary.values())
+        inactive_summary_header = inactive_summary.keys()
+        inactive_summary = list(inactive_summary.values())
         if active_positions:
             position_header = active_positions[0].keys()
             position = [list(x.values()) for x in active_positions]
@@ -60,7 +64,9 @@ def egbot():
                            the_egbot_header=egbot_header,
                            the_egbot_result=egbot_result,
                            the_summary_header=summary_header,
-                           the_summary=summary,
+                           the_summary=active_summary,
+                           the_inactive_summary_header=inactive_summary_header,
+                           the_inactive_summary=inactive_summary,
                            the_position_header=position_header,
                            the_position=position,
                            the_ticker=ticker,
@@ -69,4 +75,4 @@ def egbot():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

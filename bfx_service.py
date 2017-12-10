@@ -60,21 +60,30 @@ class BitfinexREST(APIClient):
         buy_list = []
         sell_list = []
         asterisk = ''
+        active_dict = {}
+        is_active = False
         for x in result:
             if x[3] == 'buy':
                 buy_list.append(float(x[0]) * float(x[1]) * -1)
             else:
                 sell_list.append(float(x[0]) * float(x[1]))
         fee_total = sum([float(x[0]) * 0.002 for x in result])
-        profit = sum(sell_list) + sum(buy_list) - fee_total
+        inactive_profit = sum(sell_list) + sum(buy_list) - fee_total
         for x in active_position:
             if x.get('symbol') == crypto:
-                profit = profit + float(x['amount']) * float(x['base'])
+                active_profit = inactive_profit + float(x['amount']) * float(x['base'])
                 asterisk = '*'
-        roi = profit / (float(result[0][0]) * float(result[0][1]))
-        roi = str(round(roi, 4) * 100) + '%'
-        profit = asterisk + ' $' + str(round(profit, 2))
-        return {'profit': profit, 'fee total': fee_total, 'ROI': roi}
+                is_active = True
+        inactive_roi = inactive_profit / (float(result[0][0]) * float(result[0][1]))
+        inactive_roi = str(round(inactive_roi, 4) * 100) + '%'
+        inactive_profit = asterisk + ' $' + str(round(inactive_profit, 2))
+        if is_active:
+            active_roi = active_profit / (float(result[0][0]) * float(result[0][1]))
+            active_roi = str(round(active_roi, 4) * 100) + '%'
+            active_profit = asterisk + ' $' + str(round(active_profit, 2))
+            active_dict = {'profit': active_profit, 'fee total': fee_total, 'ROI': active_roi}
+        inactive_dict = {'profit': inactive_profit, 'fee total': fee_total, 'ROI': inactive_roi}
+        return active_dict, inactive_dict
 
     def get_active_positions(self, crypto_pair=None):
         all_active_positions = self.query('POST', 'positions', authenticate=True).json()

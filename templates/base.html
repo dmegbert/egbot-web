@@ -150,7 +150,7 @@
                 {% endif %}
                 {% if the_summary_header %}
                 <div class='row'>
-                <h2>Summary</h2>
+                <h2>Summary With Active Position</h2>
                     <table class="table table-striped table-bordered table-responsive">
                         <thead>
                             <tr>
@@ -163,6 +163,29 @@
                         {% if the_summary %}
                             <tr>
                                 {% for summary in the_summary %}
+                                <td>{{ summary }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                {% if the_inactive_summary_header %}
+                <div class='row'>
+                <h2>Summary If No Active Position</h2>
+                    <table class="table table-striped table-bordered table-responsive">
+                        <thead>
+                            <tr>
+                                {% for sum_head in the_inactive_summary_header %}
+                                <th>{{ sum_head }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% if the_inactive_summary %}
+                            <tr>
+                                {% for summary in the_inactive_summary %}
                                 <td>{{ summary }}</td>
                                 {% endfor %}
                             </tr>
